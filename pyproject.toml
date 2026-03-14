@@ -1,13 +1,15 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"] 
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "vinfer"  
+name = "vinfer"
 version = "0.1.0"
-authors = [
-  { name="Jian", email="7427169@qq.com" }
-]
+authors = [{name = "ZhangJianian"}]
 description = "Lightweight VLM Inference Tool for Jetson/ARM (supports RTSP/USB/VOD)"
-long_description = file: "README.md"
-long_description_content_type = "text/markdown"
-url = "https://github.com/iloveyou-github/vinfer"  # 建议关联GitHub仓库（可选）
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["vlm", "video", "inference", "vision-language-model", "jetson"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.8",
@@ -15,20 +17,22 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "License :: OSI Approved :: MIT License",
   "Operating System :: Linux",
-  "Operating System :: Linux :: ARM",  # 适配Jetson
-  "Topic :: Computer Vision",
-  "Topic :: AI :: Computer Vision"
+  "Operating System :: Linux :: ARM",
+  "Topic :: Computer Vision"
 ]
-requires-python = ">=3.8"
 dependencies = [
-  "numpy>=1.24.0",
+  "numpy>=1.24.0,<=1.26.4",
   "psutil>=5.9.0",
   "ollama>=0.1.0"
 ]
 
-[project.scripts]
-vinfer = "vinfer.main:main"  # 确保入口正确
+[project.optional-dependencies]
+full = ["opencv-python>=4.8.0"]
 
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+[project.urls]
+Homepage = "https://github.com/iloveyou-github/VisionInfer"
+Repository = "https://github.com/iloveyou-github/VisionInfer"
+Issues = "https://github.com/iloveyou-github/VisionInfer/issues"
+
+[project.scripts]
+vinfer = "vinfer.main:main"
