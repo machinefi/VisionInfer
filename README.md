@@ -139,7 +139,7 @@ vinfer analyze --type live --url https://example.com/stream.m3u8 --interval 1.0
 | `--rtsp-host` | `-H` | RTSP server IP/domain (enables RTSP mode) |
 | `--rtsp-user` | `-U` | RTSP authentication username | `admin` |
 | `--rtsp-pass` | `-P` | RTSP authentication password | `""` |
-| `--usb-dev` | `-d` | USB camera device ID (0 = /dev/video0) | `0` |
+| `--usb-dev` | `-u` | USB camera device ID (0 = /dev/video0) | `0` |
 | `--show-preview` | `-p` | Start live preview window | `False` |
 
 ### Analyze Subcommand Arguments
