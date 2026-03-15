@@ -36,7 +36,7 @@ Our `install_deps.sh` script supports flexible dependency installation with opti
 #### Basic Usage
 | Scenario                          | Command                                                                 |
 |-----------------------------------|--------------------------------------------------------------------------|
-| Install only core dependencies (ffmpeg, python3-pip, pipx) | `curl -fsSL https://raw.githubusercontent.com/iloveyou-github/VisionInfer/main/install_deps.sh | sh` |
+| Install only core dependencies (ffmpeg, python3-pip, pipx) | `curl -fsSL https://raw.githubusercontent.com/iloveyou-github/VisionInfer/main/install_deps.sh \| sh` |
 | Install core dependencies + Ollama backend | `curl -fsSL https://raw.githubusercontent.com/iloveyou-github/VisionInfer/main/install_deps.sh | sh -s -- --backend ollama` |
 | Show script help (check parameters) | `curl -fsSL https://raw.githubusercontent.com/iloveyou-github/VisionInfer/main/install_deps.sh | sh -s -- --help` |
 
