@@ -4,6 +4,7 @@ import signal
 import psutil
 import time
 from ..constants import ollama_process
+from ..utils import logger
 
 def start_ollama_serve():
     global ollama_process
@@ -43,17 +44,46 @@ def is_ollama_running():
 
 def stop_ollama_serve():
     global ollama_process
-    try:
-        if ollama_process and ollama_process.poll() is None:
-            os.killpg(os.getpgid(ollama_process.pid), signal.SIGTERM)
-            print("✅ Ollama service terminated")
-        else:
-            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-                if proc.info['name'] == 'ollama' and 'serve' in proc.info['cmdline']:
-                    proc.terminate()
-                    print(f"✅ Terminated Ollama process (PID: {proc.info['pid']})")
-    except Exception as e:
-        print(f"⚠️ Exception terminating Ollama: {e}")
+    current_uid = os.getuid() 
+    
+    if ollama_process and ollama_process.poll() is None:
+        try:
+            ollama_process.terminate()
+            ollama_process.wait(timeout=10)
+            logger.info(f"Stopped self-started Ollama process (PID: {ollama_process.pid})")
+        except Exception as e:
+            logger.warning(f"Failed to stop self-started Ollama process: {e}")
+        finally:
+            ollama_process = None
+    
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'uids']):
+        try:
+            proc_uids = proc.info['uids']
+            if not proc_uids:
+                continue
+
+            if proc_uids.real != current_uid:
+                continue
+            
+            is_ollama = False
+            if proc.info['name'] and 'ollama' in proc.info['name'].lower():
+                is_ollama = True
+            if proc.info['cmdline'] and 'ollama serve' in ' '.join(proc.info['cmdline']).lower():
+                is_ollama = True
+            
+            if is_ollama:
+                pid = proc.info['pid']
+                if pid == os.getpid() or pid == 1: 
+                    continue
+                proc.terminate()
+                proc.wait(timeout=5)
+                logger.info(f"Cleaned residual Ollama process (PID: {pid}, user-owned)")
+        except psutil.NoSuchProcess:
+            continue 
+        except psutil.AccessDenied:
+            continue
+        except Exception as e:
+            logger.warning(f"Failed to clean user-owned Ollama process: {e}")
 
 def get_ollama_usage_data():
     return {"status": "Not implemented", "models": []}
