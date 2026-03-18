@@ -42,6 +42,22 @@ def is_ollama_running():
     except:
         return False
 
+'''
+def stop_ollama_serve():
+    global ollama_process
+    try:
+        if ollama_process and ollama_process.poll() is None:
+            os.killpg(os.getpgid(ollama_process.pid), signal.SIGTERM)
+            print("✅ Ollama service terminated")
+        else:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                if proc.info['name'] == 'ollama' and 'serve' in proc.info['cmdline']:
+                    proc.terminate()
+                    print(f"✅ Terminated Ollama process (PID: {proc.info['pid']})")
+    except Exception as e:
+        print(f"⚠️ Exception terminating Ollama: {e}")
+'''
+
 def stop_ollama_serve():
     global ollama_process
     current_uid = os.getuid() 

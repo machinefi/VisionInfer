@@ -26,9 +26,11 @@ def setup_logger():
     
     handlers = [logging.StreamHandler(), file_handler]
     logging.basicConfig(level=logging.WARNING, handlers=handlers)
+    # logging.basicConfig(level=logging.INFO, handlers=handlers)
 
 setup_logger()
 logger = logging.getLogger("vinfer")
+
 
 def get_usb_frame(dev_id):
     try:
@@ -147,7 +149,7 @@ def check_usb_camera(device_path: str) -> bool:
     return True
 
 def init_shared_camera(dev_id):
-    cap = cv2.VideoCapture(dev_id)
+    cap = cv2.VideoCapture(dev_id, cv2.CAP_V4L2)
     ret = cap.isOpened()
     cap.release()
     return ret

@@ -1,7 +1,8 @@
 import sys
+import os
+import cv2
 import threading
 import time
-import cv2
 import signal
 import atexit
 import argparse
@@ -17,8 +18,16 @@ from .cli import add_common_arguments
 from .backend.ollama_manager import start_ollama_serve, stop_ollama_serve
 from .frame_producer import start_frame_producer, stop_frame_producer
 from .input_listener import input_listener, preview_thread
-from .utils import check_usb_camera, init_shared_camera, get_usb_frame, extract_frame_stable, kill_all_ffmpeg
+from .utils import logger, check_usb_camera, init_shared_camera, extract_frame_stable, kill_all_ffmpeg
 from .inference_core import infer_frame
+from .camera.usb_camera import init_usb_camera, start_usb_preview, USBCamera
+from .camera.rtsp_camera import init_rtsp_camera, start_rtsp_preview, RTSPCamera
+
+# Disable Jetson font warnings (adapted for screen preview window)
+os.environ["QT_QPA_FONTDIR"] = "/usr/share/fonts"
+# os.environ["QT_FONT_DPI"] = "96"
+# os.environ["QT_LOGGING_RULES"] = "qt.fontdatabase.warning=false"
+
 
 def signal_handler(sig, frame):
     global EXIT_FLAG, input_thread
@@ -162,7 +171,6 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    
     # Argument validation
     if args.subcommand == "cam":
         args.continuous = True
@@ -218,26 +226,11 @@ def main():
     preview_width, preview_height = 480, 360
     if args.show_preview:
         if args.source_type == "usb":
-            if not init_shared_camera(args.usb_dev):
-                print("⚠️ USB camera initialization failed, skip preview")
-            else:
-                preview_stop_event.clear()
-                preview_thread_handle = threading.Thread(
-                    target=preview_thread,
-                    args=(args.source_type, args.usb_dev, (preview_width, preview_height), preview_stop_event),
-                    daemon=True
-                )
-                preview_thread_handle.start()
-                print(f"✅ USB preview started (device ID: {args.usb_dev})")
+            preview_thread_handle = start_usb_preview(args.usb_dev, preview_size=(480, 360))
+            logger.info(f"✅ USB Preview started(ID:{args.usb_dev})")
         elif args.source_type == "rtsp":
-            preview_stop_event.clear()
-            preview_thread_handle = threading.Thread(
-                target=preview_thread,
-                args=(args.source_type, args.source_url, (preview_width, preview_height), preview_stop_event),
-                daemon=True
-            )
-            preview_thread_handle.start()
-            print(f"✅ RTSP preview started (URL: {args.source_url[:30]}...)")
+            preview_thread_handle = start_rtsp_preview(args.source_url, 0, preview_size=(480, 360))
+            logger.info(f"✅ RTSP preview started (URL: {args.source_url[:30]}...)")
 
     # Start input listener
     input_thread = threading.Thread(target=input_listener, args=(args,), daemon=True)
@@ -362,7 +355,22 @@ def main():
             preview_thread_handle.join(timeout=2)
         stop_ollama_serve()
         kill_all_ffmpeg()
-        cv2.destroyAllWindows()
+
+        if args.source_type == "usb":
+            try:
+                camera = USBCamera(args.usb_dev)
+                camera.stop()
+            except Exception as e:
+                print(f"⚠️ Failed to force release USB camera: {e}")
+        elif args.source_type == "rtsp":
+            try:
+                camera = RTSPCamera(args.usb_dev)
+                camera.stop()
+            except Exception as e:
+                print(f"⚠️ Failed to force release RTSP camera: {e}")
+        else:
+            cv2.destroyAllWindows()
+            
         print("✅ Program exited cleanly")
 
 if __name__ == "__main__":

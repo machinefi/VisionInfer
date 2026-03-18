@@ -97,7 +97,7 @@ def input_listener(args):
     print("✅ Input listener thread exited")
 
 def preview_thread(source_type, source, size, stop_event):
-    width, height = size
+    preview_width, preview_height = size
     cap = None
     if source_type == "usb":
         cap = cv2.VideoCapture(source)
@@ -107,17 +107,21 @@ def preview_thread(source_type, source, size, stop_event):
         print(f"❌ Failed to open {source_type} preview source")
         return
     
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, preview_width)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, preview_height)
     
     while not stop_event.is_set():
         ret, frame = cap.read()
         if not ret:
             time.sleep(0.1)
             continue
+
+        frame = cv2.resize(frame, (preview_width, preview_height))
         cv2.imshow(f"VisionInfer Preview ({source_type})", frame)
+        
         if cv2.waitKey(1) & 0xFF in [ord('q'), 27]:
             stop_event.set()
             break
+
     cap.release()
     cv2.destroyWindow(f"VisionInfer Preview ({source_type})")
