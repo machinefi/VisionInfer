@@ -25,8 +25,8 @@ def setup_logger():
     file_handler.setFormatter(logging.Formatter(log_format))
     
     handlers = [logging.StreamHandler(), file_handler]
-    logging.basicConfig(level=logging.WARNING, handlers=handlers)
-    # logging.basicConfig(level=logging.INFO, handlers=handlers)
+    # logging.basicConfig(level=logging.WARNING, handlers=handlers)
+    logging.basicConfig(level=logging.INFO, handlers=handlers)
 
 setup_logger()
 logger = logging.getLogger("vinfer")
